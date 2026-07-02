@@ -171,15 +171,7 @@ class ModbusServer:
                             logging.DEBUG,
                             f"Request voor niet-geconfigureerde slave ID {unit_id} genegeerd",
                         )
-                    try:
-                        client_socket.settimeout(self.timeout)
-                        while True:
-                            data = client_socket.recv(1024)
-                            if not data:
-                                break
-                    except socket.timeout:
-                        pass
-                    return
+                    continue
 
                 response = self._process_request(full_frame)
                 if response:
