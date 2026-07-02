@@ -99,7 +99,7 @@ DEFAULT_VALUES = {
     "reserved_7": 10,
     "reserved_8": 1,
     "reserved_9": 5,
-    "reserved_10": 0,
+    "reserved_10": 65,
     "meter_type": 166,
     "baudrate": 3,
     "reserved_13": 0,
