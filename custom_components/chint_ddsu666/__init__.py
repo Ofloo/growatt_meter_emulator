@@ -26,8 +26,11 @@ from .const import (
     CONVERSION_FACTORS,
     POLLING_INTERVALS,
     VALIDATION_RULES,
+    FLOAT_REGISTER_NAMES,
+    STATIC_REGISTERS,
 )
 from .modbus_server import ModbusServer
+from .data_converter import float_to_modbus
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,17 +81,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Laad statische registerwaarden uit configuratie
     for name, address in REGISTERS.items():
-        if name in DEFAULT_VALUES:
-            value = register_config.get(name, DEFAULT_VALUES[name])
-            if name in VALIDATION_RULES:
-                rules = VALIDATION_RULES[name]
-                if not (rules["min"] <= value <= rules["max"]):
-                    _LOGGER.warning(
-                        "[growatt_meter_emulator]: Ongeldige waarde voor %s: %s. "
-                        "Gebruik standaardwaarde: %s",
-                        name, value, DEFAULT_VALUES[name],
-                    )
-                    value = DEFAULT_VALUES[name]
+        if name not in DEFAULT_VALUES:
+            continue
+        value = register_config.get(name, DEFAULT_VALUES[name])
+        if name in VALIDATION_RULES:
+            rules = VALIDATION_RULES[name]
+            if not (rules["min"] <= value <= rules["max"]):
+                _LOGGER.warning(
+                    "[growatt_meter_emulator]: Ongeldige waarde voor %s: %s. "
+                    "Gebruik standaardwaarde: %s",
+                    name, value, DEFAULT_VALUES[name],
+                )
+                value = DEFAULT_VALUES[name]
+        if name in FLOAT_REGISTER_NAMES:
+            high_word, low_word = float_to_modbus(float(value))
+            server._register_values[address] = high_word
+            server._register_values[address + 1] = low_word
+        else:
             server._register_values[address] = int(value)
 
     # Start de Modbus-server in een aparte thread

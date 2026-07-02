@@ -13,7 +13,8 @@ DEFAULT_PORT = 502
 
 # Registeradressen (hexadecimaal)
 REGISTERS = {
-    # Eerste 16 registers (0x0001 - 0x0010) — 16-bit integers
+    # Eerste 16 registers (0x0000 - 0x0010) — 16-bit integers
+    "reserved_0": 0x0000,
     "firmware_version": 0x0001,
     "clear_energy": 0x0002,
     "type_protocol": 0x0003,
@@ -26,6 +27,10 @@ REGISTERS = {
     "reserved_10": 0x000A,
     "meter_type": 0x000B,
     "baudrate": 0x000C,
+    "reserved_13": 0x000D,
+    "reserved_14": 0x000E,
+    "reserved_15": 0x000F,
+    "reserved_16": 0x0010,
 
     # Meetwaarden (0x2000 - 0x200E) — 32-bit floats
     "voltage": 0x2000,
@@ -36,39 +41,45 @@ REGISTERS = {
     "power_factor": 0x200A,
     "frequency": 0x200E,
 
+    # Test register (0x206C) — 32-bit float
+    "test_register": 0x206C,
+
     # Totale energie (0x4000 - 0x400A) — 32-bit floats
     "total_energy_import": 0x4000,
     "total_energy_export": 0x400A,
-
-    # Ongedefinieerde registers (0x2010 - 0x201F) — retourneren 65535
-    "unknown_2010": 0x2010,
-    "unknown_2012": 0x2012,
-    "unknown_2014": 0x2014,
-    "unknown_2016": 0x2016,
-    "unknown_2018": 0x2018,
-    "unknown_201A": 0x201A,
-    "unknown_201C": 0x201C,
-    "unknown_201E": 0x201E,
-
-    # Ongedefinieerde registers (0x4002 - 0x401F) — retourneren 65535
-    "unknown_4002": 0x4002,
-    "unknown_4004": 0x4004,
-    "unknown_4006": 0x4006,
-    "unknown_4008": 0x4008,
-    "unknown_400C": 0x400C,
-    "unknown_400E": 0x400E,
-    "unknown_4010": 0x4010,
-    "unknown_4012": 0x4012,
-    "unknown_4014": 0x4014,
-    "unknown_4016": 0x4016,
-    "unknown_4018": 0x4018,
-    "unknown_401A": 0x401A,
-    "unknown_401C": 0x401C,
-    "unknown_401E": 0x401E,
 }
 
-# Standaardwaarden voor de eerste 16 registers (uit de Node-RED flow)
+# Geldige register ranges (gebaseerd op Growatt queries)
+# register 0 count 16 → 0x0000-0x000F
+# register 8192 count 32 → 0x2000-0x201F
+# register 16384 count 24 → 0x4000-0x4017
+# register 8210 count 16 → 0x2012-0x2021
+VALID_REGISTER_RANGES = [
+    (0x0000, 0x000F),
+    (0x2000, 0x201F),
+    (0x4000, 0x401F),
+]
+
+# Statische integer registers (niet float, niet gepolled uit HA)
+STATIC_REGISTERS = {
+    "reserved_0", "firmware_version", "clear_energy", "type_protocol",
+    "reserved_4", "communication_protocol", "modbus_address",
+    "reserved_7", "reserved_8", "reserved_9", "reserved_10",
+    "meter_type", "baudrate",
+    "reserved_13", "reserved_14", "reserved_15", "reserved_16",
+}
+
+# Float registers (32-bit, 2× 16-bit Modbus registers)
+FLOAT_REGISTER_NAMES = {
+    "voltage", "current", "active_power", "reactive_power",
+    "apparent_power", "power_factor", "frequency",
+    "total_energy_import", "total_energy_export", "test_register",
+}
+
+# Standaardwaarden (uit de Node-RED flow inject nodes)
 DEFAULT_VALUES = {
+    # Statische registers
+    "reserved_0": 701,
     "firmware_version": 504,
     "clear_energy": 0,
     "type_protocol": 166,
@@ -81,8 +92,12 @@ DEFAULT_VALUES = {
     "reserved_10": 0,
     "meter_type": 166,
     "baudrate": 3,
+    "reserved_13": 0,
+    "reserved_14": 1,
+    "reserved_15": 108,
+    "reserved_16": 101,
 
-    # Meetwaarden (0x2000 - 0x200E) — 32-bit floats
+    # Meetwaarden (float)
     "voltage": 230.0,
     "current": 0.0,
     "active_power": 0.0,
@@ -91,33 +106,12 @@ DEFAULT_VALUES = {
     "power_factor": 1.0,
     "frequency": 50.0,
 
-    # Totale energie (0x4000 - 0x400A) — 32-bit floats
+    # Test register (float)
+    "test_register": 0.0,
+
+    # Totale energie (float)
     "total_energy_import": 0.0,
     "total_energy_export": 0.0,
-
-    # Ongedefinieerde registers — retourneren 65535
-    "unknown_2010": 65535,
-    "unknown_2012": 65535,
-    "unknown_2014": 65535,
-    "unknown_2016": 65535,
-    "unknown_2018": 65535,
-    "unknown_201A": 65535,
-    "unknown_201C": 65535,
-    "unknown_201E": 65535,
-    "unknown_4002": 65535,
-    "unknown_4004": 65535,
-    "unknown_4006": 65535,
-    "unknown_4008": 65535,
-    "unknown_400C": 65535,
-    "unknown_400E": 65535,
-    "unknown_4010": 65535,
-    "unknown_4012": 65535,
-    "unknown_4014": 65535,
-    "unknown_4016": 65535,
-    "unknown_4018": 65535,
-    "unknown_401A": 65535,
-    "unknown_401C": 65535,
-    "unknown_401E": 65535,
 }
 
 # Conversiefactoren (uit de Node-RED flow: ×0.001 voor vermogens)
@@ -142,7 +136,7 @@ POLLING_INTERVALS = {
 
 # Standaard frequentie (uit de Node-RED inject-node)
 DEFAULT_FREQUENCY = 50.0
-FIXED_FREQUENCY = 50.0  # Vaste waarde voor register 0x200E (uit Node-RED flow)
+FIXED_FREQUENCY = 50.0
 
 # Validatieregels voor statische registers
 VALIDATION_RULES = {

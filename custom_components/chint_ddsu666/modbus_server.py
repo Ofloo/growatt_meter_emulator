@@ -18,8 +18,9 @@ from .const import (
     REGISTERS,
     DEFAULT_VALUES,
     CONVERSION_FACTORS,
-    DEFAULT_FREQUENCY,
-    FIXED_FREQUENCY,
+    FLOAT_REGISTER_NAMES,
+    STATIC_REGISTERS,
+    VALID_REGISTER_RANGES,
     FUNC_READ_HOLDING_REGISTERS,
     FUNC_WRITE_SINGLE_REGISTER,
     FUNC_WRITE_MULTIPLE_REGISTERS,
@@ -57,8 +58,22 @@ class ModbusServer:
     def _init_register_values(self) -> None:
         """Initialiseer de registerwaarden met standaardwaarden uit de Node-RED flow."""
         for name, address in REGISTERS.items():
-            if name in DEFAULT_VALUES:
-                self._register_values[address] = DEFAULT_VALUES[name]
+            if name not in DEFAULT_VALUES:
+                continue
+            if name in FLOAT_REGISTER_NAMES:
+                value = DEFAULT_VALUES[name]
+                high_word, low_word = float_to_modbus(value)
+                self._register_values[address] = high_word
+                self._register_values[address + 1] = low_word
+            else:
+                self._register_values[address] = int(DEFAULT_VALUES[name])
+
+    def _is_valid_register(self, addr: int) -> bool:
+        """Controleer of een registeradres binnen de geldige ranges valt."""
+        for start, end in VALID_REGISTER_RANGES:
+            if start <= addr <= end:
+                return True
+        return False
 
     def _log(self, level: int, message: str) -> None:
         """Log een bericht met de [growatt_meter_emulator] prefix."""
@@ -126,7 +141,6 @@ class ModbusServer:
         unit_id = None
         try:
             while True:
-                # Lees Modbus TCP-header (6 bytes)
                 header = b""
                 while len(header) < 6:
                     chunk = client_socket.recv(6 - len(header))
@@ -134,16 +148,13 @@ class ModbusServer:
                         return
                     header += chunk
 
-                # Bereken frame-lengte (bytes 5-6)
                 length = int.from_bytes(header[4:6], byteorder="big")
 
-                # Lees Unit ID (byte 7)
                 unit_id_byte = client_socket.recv(1)
                 if not unit_id_byte:
                     return
                 unit_id = unit_id_byte[0]
 
-                # Lees resterende data
                 remaining_length = length - 1
                 remaining_data = b""
                 while len(remaining_data) < remaining_length:
@@ -156,14 +167,12 @@ class ModbusServer:
 
                 full_frame = header + unit_id_byte + remaining_data
 
-                # Slave ID-filtering (gebaseerd op Modbus-proxy)
                 if unit_id != self.slave_id:
                     if self.debug:
                         self._log(
                             logging.DEBUG,
                             f"Request voor niet-geconfigureerde slave ID {unit_id} genegeerd",
                         )
-                    # Silent drop — geen response, geen RST, connectie blijft open
                     try:
                         client_socket.settimeout(self.timeout)
                         while True:
@@ -174,7 +183,6 @@ class ModbusServer:
                         pass
                     return
 
-                # Verwerk het request
                 response = self._process_request(full_frame)
                 if response:
                     client_socket.sendall(response)
@@ -190,10 +198,7 @@ class ModbusServer:
                     pass
 
     def _process_request(self, request: bytes) -> Optional[bytes]:
-        """Verwerk een Modbus-request en retourneer een response.
-
-        Gebaseerd op de Node-RED flow registerdefinities.
-        """
+        """Verwerk een Modbus-request en retourneer een response."""
         if len(request) < 8:
             return None
 
@@ -249,10 +254,9 @@ class ModbusServer:
                 f"Lees register 0x{start_address:04X}, aantal: {quantity}",
             )
 
-        # Controleer of het registerbereik binnen de ondersteunde bereiken valt
         for offset in range(quantity):
             addr = start_address + offset
-            if not ((0x2000 <= addr <= 0x201F) or (0x4000 <= addr <= 0x401F)):
+            if not self._is_valid_register(addr):
                 self._log(
                     logging.WARNING,
                     f"Register buiten bereik aangeroepen: 0x{addr:04X}",
@@ -262,8 +266,7 @@ class ModbusServer:
                     FUNC_READ_HOLDING_REGISTERS, EXCEPTION_ILLEGAL_DATA_ADDRESS,
                 )
 
-        # Bouw response (32-bit floats → 2x 16-bit registers per float)
-        byte_count = quantity * 4  # 2 registers per float
+        byte_count = quantity * 2
         response = bytearray()
         response.extend(transaction_id)
         response.extend(protocol_id)
@@ -274,29 +277,8 @@ class ModbusServer:
 
         for offset in range(quantity):
             addr = start_address + offset
-            # Zoek het register in REGISTERS
-            register_name = next(
-                (name for name, reg_addr in REGISTERS.items() if reg_addr == addr),
-                None
-            )
-            if register_name:
-                # Gedefinieerd register: haal data op uit Home Assistant of gebruik standaardwaarde
-                if register_name in ["voltage", "current", "active_power", "reactive_power", "apparent_power", "power_factor", "frequency", "total_energy_import", "total_energy_export"]:
-                    value = self._get_value_from_ha(register_name) if hasattr(self, '_get_value_from_ha') else DEFAULT_VALUES.get(register_name, 0.0)
-                else:
-                    value = DEFAULT_VALUES.get(register_name, 65535)
-            else:
-                # Ongedefinieerd register: retourneer 65535
-                value = 65535
-            
-            # Converteer float naar 2x 16-bit registers (big-endian)
-            try:
-                packed = struct.pack('>f', float(value))
-                registers = struct.unpack('>HH', packed)
-                response.extend(struct.pack('>HH', *registers))
-            except (ValueError, struct.error):
-                # Fallback: retourneer 0 als conversie faalt
-                response.extend(struct.pack('>HH', 0, 0))
+            value = self._register_values.get(addr, 0)
+            response.extend(struct.pack('>H', value & 0xFFFF))
 
         return bytes(response)
 
@@ -323,7 +305,7 @@ class ModbusServer:
                 f"Schrijf register 0x{register_address:04X} = {register_value}",
             )
 
-        if register_address not in self._register_values:
+        if not self._is_valid_register(register_address):
             self._log(
                 logging.WARNING,
                 f"Ongedefinieerd register aangeroepen voor schrijfactie: 0x{register_address:04X}",
@@ -334,8 +316,6 @@ class ModbusServer:
             )
 
         self._register_values[register_address] = register_value
-
-        # Echo het request terug als response (Modbus standaard)
         return request
 
     def _handle_write_multiple_registers(
@@ -364,7 +344,7 @@ class ModbusServer:
 
         for i in range(quantity):
             addr = start_address + i
-            if addr not in self._register_values:
+            if not self._is_valid_register(addr):
                 self._log(
                     logging.WARNING,
                     f"Ongedefinieerd register aangeroepen voor schrijfactie: 0x{addr:04X}",
@@ -380,7 +360,6 @@ class ModbusServer:
             value = int.from_bytes(request[offset:offset + 2], byteorder="big")
             self._register_values[addr] = value
 
-        # Response: echo start address + quantity
         response = bytearray()
         response.extend(transaction_id)
         response.extend(protocol_id)
