@@ -62,6 +62,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     polling_config = entry.data.get("polling", {})
     register_config = entry.data.get("registers", {})
 
+    _LOGGER.warning(
+        "[growatt_meter_emulator]: Config geladen. ha_config keys: %s",
+        list(ha_config.keys()),
+    )
+    _LOGGER.warning(
+        "[growatt_meter_emulator]: active_power_entity = '%s'",
+        ha_config.get("active_power_entity", "NIET GEVONDEN"),
+    )
+
     host = modbus_config.get("host", DEFAULT_HOST)
     port = modbus_config.get("port", DEFAULT_PORT)
     slave_id = modbus_config.get("slave_id", DEFAULT_SLAVE_ID)
