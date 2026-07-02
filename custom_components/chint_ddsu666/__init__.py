@@ -62,15 +62,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     polling_config = entry.data.get("polling", {})
     register_config = entry.data.get("registers", {})
 
-    _LOGGER.warning(
-        "[growatt_meter_emulator]: Config geladen. ha_config keys: %s",
-        list(ha_config.keys()),
-    )
-    _LOGGER.warning(
-        "[growatt_meter_emulator]: active_power_entity = '%s'",
-        ha_config.get("active_power_entity", "NIET GEVONDEN"),
-    )
-
     host = modbus_config.get("host", DEFAULT_HOST)
     port = modbus_config.get("port", DEFAULT_PORT)
     slave_id = modbus_config.get("slave_id", DEFAULT_SLAVE_ID)
@@ -135,30 +126,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entity_key = f"{name}_entity"
             entity_id = ha_config.get(entity_key)
             if not entity_id:
-                if name == "active_power":
-                    _LOGGER.warning(
-                        "[growatt_meter_emulator]: active_power: entity_key niet in ha_config"
-                    )
                 continue
 
             state = hass.states.get(entity_id)
             if state is None or state.state in ("unknown", "unavailable"):
-                if name == "active_power":
-                    _LOGGER.warning(
-                        "[growatt_meter_emulator]: active_power: entity '%s' state=%s",
-                        entity_id,
-                        state.state if state else "None (entity niet gevonden)",
-                    )
                 continue
 
             try:
                 value = float(state.state)
             except (ValueError, TypeError):
-                if name == "active_power":
-                    _LOGGER.warning(
-                        "[growatt_meter_emulator]: active_power: kan '%s' niet naar float converteren",
-                        state.state,
-                    )
                 continue
 
             if name in CONVERSION_FACTORS:
