@@ -87,9 +87,6 @@ class ModbusServer:
             self._log(logging.WARNING, f"Onbekend register: {name}")
             return
 
-        if name in CONVERSION_FACTORS:
-            value = value * CONVERSION_FACTORS[name]
-
         high_word, low_word = float_to_modbus(value)
         self._register_values[address] = high_word
         self._register_values[address + 1] = low_word
