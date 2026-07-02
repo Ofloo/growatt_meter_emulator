@@ -31,7 +31,6 @@ REGISTERS = {
     "reserved_14": 0x000E,
     "reserved_15": 0x000F,
     "reserved_16": 0x0010,
-    "reserved_17": 0x0011,
 
     # Meetwaarden (0x2000 - 0x200E) — 32-bit floats
     "voltage": 0x2000,
@@ -53,13 +52,13 @@ REGISTERS = {
 }
 
 # Geldige register ranges (gebaseerd op Growatt queries)
-# register 0 count 18 → 0x0000-0x0011 (36 bytes)
+# register 0 count 17 → 0x0000-0x0010 (34 bytes)
 # register 8192 count 32 → 0x2000-0x201F
 # register 16384 count 24 → 0x4000-0x4017
 # register 8210 count 18 → 0x2012-0x2023
 # Node-RED flow schrijft 36 reserved registers vanaf 0x2012 → 0x2012-0x2035
 VALID_REGISTER_RANGES = [
-    (0x0000, 0x0011),
+    (0x0000, 0x0010),
     (0x2000, 0x2035),
     (0x4000, 0x401F),
 ]
@@ -76,7 +75,6 @@ STATIC_REGISTERS = {
     "reserved_7", "reserved_8", "reserved_9", "reserved_10",
     "meter_type", "baudrate",
     "reserved_13", "reserved_14", "reserved_15", "reserved_16",
-    "reserved_17",
 }
 
 # Float registers (32-bit, 2× 16-bit Modbus registers)
@@ -108,7 +106,6 @@ DEFAULT_VALUES = {
     "reserved_14": 1,
     "reserved_15": 108,
     "reserved_16": 101,
-    "reserved_17": 0,
 
     # Meetwaarden (float)
     "voltage": 230.0,
