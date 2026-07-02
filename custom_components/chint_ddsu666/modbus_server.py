@@ -249,21 +249,21 @@ class ModbusServer:
                 f"Lees register 0x{start_address:04X}, aantal: {quantity}",
             )
 
-        # Controleer of alle gevraagde registers gedefinieerd zijn
+        # Controleer of het registerbereik binnen de ondersteunde bereiken valt
         for offset in range(quantity):
             addr = start_address + offset
-            if addr not in self._register_values:
+            if not ((0x2000 <= addr <= 0x201F) or (0x4000 <= addr <= 0x401F)):
                 self._log(
                     logging.WARNING,
-                    f"Ongedefinieerd register aangeroepen: 0x{addr:04X}",
+                    f"Register buiten bereik aangeroepen: 0x{addr:04X}",
                 )
                 return self._build_exception_response(
                     transaction_id, protocol_id, unit_id,
                     FUNC_READ_HOLDING_REGISTERS, EXCEPTION_ILLEGAL_DATA_ADDRESS,
                 )
 
-        # Bouw response
-        byte_count = quantity * 2
+        # Bouw response (32-bit floats → 2x 16-bit registers per float)
+        byte_count = quantity * 4  # 2 registers per float
         response = bytearray()
         response.extend(transaction_id)
         response.extend(protocol_id)
@@ -274,8 +274,29 @@ class ModbusServer:
 
         for offset in range(quantity):
             addr = start_address + offset
-            value = self._register_values.get(addr, 0)
-            response.extend(value.to_bytes(2, byteorder="big"))
+            # Zoek het register in REGISTERS
+            register_name = next(
+                (name for name, reg_addr in REGISTERS.items() if reg_addr == addr),
+                None
+            )
+            if register_name:
+                # Gedefinieerd register: haal data op uit Home Assistant of gebruik standaardwaarde
+                if register_name in ["voltage", "current", "active_power", "reactive_power", "apparent_power", "power_factor", "frequency", "total_energy_import", "total_energy_export"]:
+                    value = self._get_value_from_ha(register_name) if hasattr(self, '_get_value_from_ha') else DEFAULT_VALUES.get(register_name, 0.0)
+                else:
+                    value = DEFAULT_VALUES.get(register_name, 65535)
+            else:
+                # Ongedefinieerd register: retourneer 65535
+                value = 65535
+            
+            # Converteer float naar 2x 16-bit registers (big-endian)
+            try:
+                packed = struct.pack('>f', float(value))
+                registers = struct.unpack('>HH', packed)
+                response.extend(struct.pack('>HH', *registers))
+            except (ValueError, struct.error):
+                # Fallback: retourneer 0 als conversie faalt
+                response.extend(struct.pack('>HH', 0, 0))
 
         return bytes(response)
 
