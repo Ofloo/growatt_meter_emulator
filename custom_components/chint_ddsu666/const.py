@@ -77,6 +77,7 @@ POLLING_INTERVALS = {
 
 # Standaard frequentie (uit de Node-RED inject-node)
 DEFAULT_FREQUENCY = 50.0
+FIXED_FREQUENCY = 50.0  # Vaste waarde voor register 0x200E (uit Node-RED flow)
 
 # Validatieregels voor statische registers
 VALIDATION_RULES = {
