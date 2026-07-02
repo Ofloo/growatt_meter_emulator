@@ -21,6 +21,7 @@ from .const import (
     FLOAT_REGISTER_NAMES,
     STATIC_REGISTERS,
     VALID_REGISTER_RANGES,
+    DEFAULT_65535_RANGES,
     FUNC_READ_HOLDING_REGISTERS,
     FUNC_WRITE_SINGLE_REGISTER,
     FUNC_WRITE_MULTIPLE_REGISTERS,
@@ -277,7 +278,10 @@ class ModbusServer:
 
         for offset in range(quantity):
             addr = start_address + offset
-            value = self._register_values.get(addr, 65535)
+            if any(start <= addr <= end for start, end in DEFAULT_65535_RANGES):
+                value = self._register_values.get(addr, 65535)
+            else:
+                value = self._register_values.get(addr, 0)
             response.extend(struct.pack('>H', value & 0xFFFF))
 
         return bytes(response)

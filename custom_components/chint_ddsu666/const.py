@@ -63,6 +63,11 @@ VALID_REGISTER_RANGES = [
     (0x4000, 0x401F),
 ]
 
+# Ranges waar ongedefinieerde registers 65535 retourneren (matching Node-RED flow)
+DEFAULT_65535_RANGES = [
+    (0x2012, 0x2023),
+]
+
 # Statische integer registers (niet float, niet gepolled uit HA)
 STATIC_REGISTERS = {
     "reserved_0", "firmware_version", "clear_energy", "type_protocol",
