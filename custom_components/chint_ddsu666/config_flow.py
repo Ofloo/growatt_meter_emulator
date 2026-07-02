@@ -95,8 +95,12 @@ class ChintDDSU666ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_abort(reason="no_config")
 
+        port = user_input.get("modbus", {}).get("port", DEFAULT_PORT)
+        await self.async_set_unique_id(f"chint_ddsu666_port_{port}")
+        self._abort_if_unique_id_configured(updates=user_input)
+
         return self.async_create_entry(
-            title="CHINT DDSU666 Emulator",
+            title=f"CHINT DDSU666 Emulator (poort {port})",
             data=user_input,
         )
 
