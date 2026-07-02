@@ -44,9 +44,11 @@ REGISTERS = {
     # Test register (0x206C) — 32-bit float
     "test_register": 0x206C,
 
-    # Totale energie (0x4000 - 0x400A) — 32-bit floats
+    # Totale energie (0x4000 - 0x400D) — 32-bit floats
     "total_energy_import": 0x4000,
+    "total_energy_import_2": 0x4002,
     "total_energy_export": 0x400A,
+    "total_energy_export_2": 0x400C,
 }
 
 # Geldige register ranges (gebaseerd op Growatt queries)
@@ -55,7 +57,7 @@ REGISTERS = {
 # register 16384 count 24 → 0x4000-0x4017
 # register 8210 count 16 → 0x2012-0x2021
 VALID_REGISTER_RANGES = [
-    (0x0000, 0x000F),
+    (0x0000, 0x0010),
     (0x2000, 0x201F),
     (0x4000, 0x401F),
 ]
@@ -73,7 +75,9 @@ STATIC_REGISTERS = {
 FLOAT_REGISTER_NAMES = {
     "voltage", "current", "active_power", "reactive_power",
     "apparent_power", "power_factor", "frequency",
-    "total_energy_import", "total_energy_export", "test_register",
+    "total_energy_import", "total_energy_import_2",
+    "total_energy_export", "total_energy_export_2",
+    "test_register",
 }
 
 # Standaardwaarden (uit de Node-RED flow inject nodes)
@@ -111,7 +115,9 @@ DEFAULT_VALUES = {
 
     # Totale energie (float)
     "total_energy_import": 0.0,
+    "total_energy_import_2": 0.0,
     "total_energy_export": 0.0,
+    "total_energy_export_2": 0.0,
 }
 
 # Conversiefactoren (uit de Node-RED flow: ×0.001 voor vermogens)

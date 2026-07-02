@@ -148,6 +148,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if t1_import is not None or t2_import is not None:
             total_import = (t1_import or 0) + (t2_import or 0)
             server.update_register("total_energy_import", total_import)
+            server.update_register("total_energy_import_2", total_import)
 
         # Totale energie export: T1 + T2 (zoals in de Node-RED flow)
         t1_export = _get_entity_value(hass, ha_config.get("total_energy_export_t1_entity"))
@@ -155,6 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if t1_export is not None or t2_export is not None:
             total_export = (t1_export or 0) + (t2_export or 0)
             server.update_register("total_energy_export", total_export)
+            server.update_register("total_energy_export_2", total_export)
 
         # Frequentie: entity of vast getal
         if frequency_is_entity:
