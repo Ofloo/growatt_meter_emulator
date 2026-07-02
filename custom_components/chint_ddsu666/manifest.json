@@ -1,0 +1,12 @@
+{
+    "domain": "chint_ddsu666",
+    "name": "CHINT DDSU666 Modbus Emulator",
+    "documentation": "https://github.com/ofloo/chint_ddsu666",
+    "issue_tracker": "https://github.com/ofloo/chint_ddsu666/issues",
+    "dependencies": [],
+    "codeowners": ["@ofloo"],
+    "requirements": [],
+    "iot_class": "local_push",
+    "version": "1.0.0",
+    "config_flow": true
+}

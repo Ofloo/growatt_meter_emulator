@@ -1,0 +1,238 @@
+# =============================================
+# CHINT DDSU666 Modbus Emulator - Configuratie
+# =============================================
+# Emuleert een CHINT DDSU666 single-phase energy meter via Modbus TCP.
+# Gebaseerd op de Node-RED flow (_data/chint_ddsu666_single_phase_emulatorv4.json)
+# en de Modbus-proxy (slave ID-filtering).
+#
+# Gebruik:
+#   1. Kopieer dit bestand naar `configuration.yaml` in je Home Assistant config-directory.
+#   2. Pas de waarden aan naar jouw setup.
+#   3. Start Home Assistant opnieuw op.
+#
+# Alle velden zijn optioneel tenzij anders aangegeven. Standaardwaarden staan tussen haakjes.
+
+chint_ddsu666:
+
+  # =============================================
+  # Modbus-server configuratie
+  # =============================================
+  modbus:
+    # Luisteradres van de Modbus-server.
+    # Standaard: "0.0.0.0" (alle interfaces).
+    host: "0.0.0.0"
+
+    # Luisterpoort van de Modbus-server.
+    # Standaard: 502 (standaard Modbus TCP-poort).
+    port: 502
+
+    # Slave ID waarop de emulator reageert.
+    # Alleen requests voor deze slave ID worden verwerkt.
+    # Andere slave IDs: timeout (geen response, geen RST, connectie blijft open).
+    # Standaard: 3 (zoals in de Node-RED flow).
+    slave_id: 3
+
+    # Timeout in seconden voor niet-geconfigureerde slave IDs.
+    # Na deze tijd wordt de socket gesloten als de client geen data stuurt.
+    # Standaard: 30 seconden (zoals in de Modbus-proxy).
+    timeout: 30
+
+    # Debug-logging in-/uitschakelen.
+    # Als `true`: log alle Modbus-requests en registerupdates met prefix `[growatt_meter_emulator]`.
+    # Standaard: false.
+    debug: false
+
+  # =============================================
+  # Home Assistant entiteiten (VERPLICHT)
+  # =============================================
+  # De emulator haalt meetwaarden uit deze Home Assistant-sensoren.
+  # Vul minimaal de spanning (`voltage_entity`) en stroom (`current_entity`) in.
+  home_assistant:
+    # Spanning (V) - VERPLICHT.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_spanning_fase_1"
+    voltage_entity: ""
+
+    # Stroom (A) - VERPLICHT.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_stroom_fase_1"
+    current_entity: ""
+
+    # Actief vermogen (W) - Optioneel.
+    # Wordt automatisch omgezet naar kW (×0.001).
+    # Voorbeeld: "sensor.energy_grid_slimme_meter_gateway_dsmr_aa1c88_stroom_verbruikt_net_power"
+    active_power_entity: ""
+
+    # Reactief vermogen (VAR) - Optioneel.
+    # Wordt automatisch omgezet naar kVAR (×0.001).
+    # Voorbeeld: "sensor.hal_slimme_meter_gateway_dsmr_reactief_vermogen_fase_1"
+    reactive_power_entity: ""
+
+    # Schijnbaar vermogen (VA) - Optioneel.
+    # Wordt automatisch omgezet naar kVA (×0.001).
+    # Voorbeeld: "sensor.hal_slimme_meter_gateway_dsmr_schijnbaar_vermogen_fase_1"
+    apparent_power_entity: ""
+
+    # Power Factor (cos φ) - Optioneel.
+    # Voorbeeld: "sensor.hal_slimme_meter_gateway_dsmr_power_factor_fase_1"
+    power_factor_entity: ""
+
+    # Frequentie (Hz) - Optioneel.
+    # Kan een entity zijn (bijv. "sensor.netfrequentie") of een vast getal in `registers.frequency`.
+    # Als beide ontbreken, wordt de standaardwaarde 50.0 Hz gebruikt.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_netfrequentie"
+    frequency_entity: ""
+
+    # Totale energie import (T1, kWh) - Optioneel.
+    # Wordt opgeteld bij `total_energy_import_t2_entity` voor register 0x4000.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_verbruik_tarief_1"
+    total_energy_import_t1_entity: ""
+
+    # Totale energie import (T2, kWh) - Optioneel.
+    # Wordt opgeteld bij `total_energy_import_t1_entity` voor register 0x4000.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_verbruik_tarief_2"
+    total_energy_import_t2_entity: ""
+
+    # Totale energie export (T1, kWh) - Optioneel.
+    # Wordt opgeteld bij `total_energy_export_t2_entity` voor register 0x400A.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_teruglevering_tarief_1"
+    total_energy_export_t1_entity: ""
+
+    # Totale energie export (T2, kWh) - Optioneel.
+    # Wordt opgeteld bij `total_energy_export_t1_entity` voor register 0x400A.
+    # Voorbeeld: "sensor.slimme_meter_gateway_aa1c88_teruglevering_tarief_2"
+    total_energy_export_t2_entity: ""
+
+  # =============================================
+  # Polling intervals (OPTIONEEL)
+  # =============================================
+  # Overschrijf de standaard polling-intervallen uit de Node-RED flow.
+  # Alle waarden zijn in seconden.
+  polling:
+    # Spanning (standaard: 5 seconden).
+    voltage_interval: 5
+
+    # Stroom (standaard: 1 seconde).
+    current_interval: 1
+
+    # Actief vermogen (standaard: 1 seconde).
+    active_power_interval: 1
+
+    # Reactief vermogen (standaard: 1 seconde).
+    reactive_power_interval: 1
+
+    # Schijnbaar vermogen (standaard: 1 seconde).
+    apparent_power_interval: 1
+
+    # Power Factor (standaard: 1 seconde).
+    power_factor_interval: 1
+
+    # Frequentie (standaard: 5 seconden).
+    frequency_interval: 5
+
+    # Totale energie import/export (standaard: 10 seconden).
+    energy_interval: 10
+
+  # =============================================
+  # Statische registers (0x0001 - 0x0010) - OPTIONEEL
+  # =============================================
+  # Overschrijf de standaardwaarden uit de Node-RED flow.
+  # Deze registers zijn statische 16-bit integers.
+  registers:
+    # Firmwareversie (standaard: 504).
+    firmware_version: 504
+
+    # CLr.E (Clear Energy) - 0 = niet resetten, 1 = reset totale energie (standaard: 0).
+    clear_energy: 0
+
+    # Type Protocol (standaard: 166 voor DDSU666).
+    type_protocol: 166
+
+    # Communicatieprotocol (standaard: 5 voor Modbus TCP).
+    communication_protocol: 5
+
+    # Modbus-adres (slave ID) - overschrijft `modbus.slave_id` (standaard: 3).
+    modbus_address: 3
+
+    # Baudrate (standaard: 3 voor 9600 baud).
+    # Geldige waarden: 0 (1200), 1 (2400), 2 (4800), 3 (9600).
+    baudrate: 3
+
+    # Frequentie (Hz) - Optioneel.
+    # Kan een vast getal zijn (bijv. 50.0) of een entity ID (bijv. "sensor.netfrequentie").
+    # Als een entity ID wordt opgegeven, wordt de waarde uit die entity gehaald.
+    # Als een getal wordt opgegeven, wordt dat als vaste waarde gebruikt.
+    # Standaard: 50.0 (Europa). Gebruik 60.0 voor VS.
+    frequency: 50.0
+
+    # Overige reserved registers (standaardwaarden uit de Node-RED flow).
+    reserved_4: 5
+    reserved_7: 10
+    reserved_8: 1
+    reserved_9: 5
+    reserved_10: 0
+    meter_type: 166
+
+# =============================================
+# Voorbeelden
+# =============================================
+# Minimale configuratie (alleen spanning en stroom):
+# chint_ddsu666:
+#   modbus:
+#     host: "0.0.0.0"
+#     port: 502
+#     slave_id: 3
+#   home_assistant:
+#     voltage_entity: "sensor.slimme_meter_voltage"
+#     current_entity: "sensor.slimme_meter_current"
+
+# Frequentie als entity (dynamisch uit Home Assistant):
+# chint_ddsu666:
+#   modbus:
+#     host: "0.0.0.0"
+#     port: 502
+#     slave_id: 3
+#   home_assistant:
+#     voltage_entity: "sensor.slimme_meter_voltage"
+#     current_entity: "sensor.slimme_meter_current"
+#   registers:
+#     frequency: "sensor.netfrequentie"
+
+# Frequentie als vast getal (60.0 Hz voor VS):
+# chint_ddsu666:
+#   modbus:
+#     host: "0.0.0.0"
+#     port: 502
+#     slave_id: 3
+#   home_assistant:
+#     voltage_entity: "sensor.slimme_meter_voltage"
+#     current_entity: "sensor.slimme_meter_current"
+#   registers:
+#     frequency: 60.0
+
+# Volledige configuratie met debug-logging:
+# chint_ddsu666:
+#   modbus:
+#     host: "0.0.0.0"
+#     port: 502
+#     slave_id: 3
+#     timeout: 30
+#     debug: true
+#   home_assistant:
+#     voltage_entity: "sensor.slimme_meter_voltage"
+#     current_entity: "sensor.slimme_meter_current"
+#     active_power_entity: "sensor.slimme_meter_active_power"
+#     reactive_power_entity: "sensor.slimme_meter_reactive_power"
+#     apparent_power_entity: "sensor.slimme_meter_apparent_power"
+#     power_factor_entity: "sensor.slimme_meter_power_factor"
+#     frequency_entity: "sensor.netfrequentie"
+#     total_energy_import_t1_entity: "sensor.slimme_meter_verbruik_t1"
+#     total_energy_import_t2_entity: "sensor.slimme_meter_verbruik_t2"
+#     total_energy_export_t1_entity: "sensor.slimme_meter_teruglevering_t1"
+#     total_energy_export_t2_entity: "sensor.slimme_meter_teruglevering_t2"
+#   polling:
+#     voltage_interval: 5
+#     current_interval: 1
+#     energy_interval: 10
+#   registers:
+#     firmware_version: 504
+#     baudrate: 3
+#     frequency: 50.0

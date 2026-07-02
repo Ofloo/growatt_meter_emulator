@@ -1,0 +1,34 @@
+# Services voor de CHINT DDSU666 Modbus Emulator
+
+update_register:
+  name: Update register
+  description: Update een specifiek Modbus-register met een nieuwe waarde.
+  fields:
+    register:
+      name: Register
+      description: Naam van het register (bijv. voltage, current, active_power).
+      required: true
+      example: voltage
+      selector:
+        select:
+          options:
+            - voltage
+            - current
+            - active_power
+            - reactive_power
+            - apparent_power
+            - power_factor
+            - frequency
+            - total_energy_import
+            - total_energy_export
+    value:
+      name: Waarde
+      description: Nieuwe waarde voor het register.
+      required: true
+      example: 230.5
+      selector:
+        number:
+          min: 0
+          max: 1000000
+          step: 0.1
+          mode: box
