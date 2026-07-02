@@ -55,10 +55,11 @@ REGISTERS = {
 # register 0 count 16 → 0x0000-0x000F
 # register 8192 count 32 → 0x2000-0x201F
 # register 16384 count 24 → 0x4000-0x4017
-# register 8210 count 16 → 0x2012-0x2021
+# register 8210 count 18 → 0x2012-0x2023
+# Node-RED flow schrijft 36 reserved registers vanaf 0x2012 → 0x2012-0x2035
 VALID_REGISTER_RANGES = [
     (0x0000, 0x0010),
-    (0x2000, 0x201F),
+    (0x2000, 0x2035),
     (0x4000, 0x401F),
 ]
 

@@ -277,7 +277,7 @@ class ModbusServer:
 
         for offset in range(quantity):
             addr = start_address + offset
-            value = self._register_values.get(addr, 0)
+            value = self._register_values.get(addr, 65535)
             response.extend(struct.pack('>H', value & 0xFFFF))
 
         return bytes(response)
