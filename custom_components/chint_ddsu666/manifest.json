@@ -1,12 +1,12 @@
 {
     "domain": "chint_ddsu666",
     "name": "CHINT DDSU666 Modbus Emulator",
-    "documentation": "https://github.com/Ofloo/growatt_meter_emulator",
-    "issue_tracker": "https://github.com/Ofloo/growatt_meter_emulator/issues",
-    "dependencies": [],
     "codeowners": ["@Ofloo"],
-    "requirements": [],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/Ofloo/growatt_meter_emulator",
     "iot_class": "local_push",
-    "version": "0.3.0",
-    "config_flow": true
+    "issue_tracker": "https://github.com/Ofloo/growatt_meter_emulator/issues",
+    "requirements": [],
+    "version": "0.3.0"
 }

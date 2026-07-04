@@ -10,9 +10,12 @@ import logging
 import threading
 from datetime import timedelta
 
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_time_interval
+import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -35,6 +38,45 @@ from .data_converter import float_to_modbus
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = []
+
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Optional("modbus"): vol.Schema(
+                    {
+                        vol.Optional("host", default="0.0.0.0"): str,
+                        vol.Optional("port", default=502): int,
+                        vol.Optional("slave_id", default=3): int,
+                        vol.Optional("timeout", default=30): int,
+                        vol.Optional("debug", default=False): bool,
+                    }
+                ),
+                vol.Optional("home_assistant"): vol.Schema(
+                    {
+                        vol.Optional("voltage_entity"): str,
+                        vol.Optional("current_entity"): str,
+                        vol.Optional("active_power_entity"): str,
+                        vol.Optional("reactive_power_entity"): str,
+                        vol.Optional("apparent_power_entity"): str,
+                        vol.Optional("power_factor_entity"): str,
+                        vol.Optional("frequency_entity"): str,
+                        vol.Optional("energy_import_t1_entity"): str,
+                        vol.Optional("energy_import_t2_entity"): str,
+                        vol.Optional("energy_export_t1_entity"): str,
+                        vol.Optional("energy_export_t2_entity"): str,
+                    }
+                ),
+                vol.Optional("registers"): vol.Schema(
+                    {
+                        vol.Optional("frequency"): vol.Any(float, str),
+                    }
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
