@@ -1,0 +1,32 @@
+name: Validate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate manifest.json
+        run: |
+          python3 -c "
+          import json, sys
+          with open('custom_components/chint_ddsu666/manifest.json') as f:
+              m = json.load(f)
+          assert 'domain' in m, 'Missing domain'
+          assert 'version' in m, 'Missing version'
+          assert 'name' in m, 'Missing name'
+          print(f'OK: {m[\"domain\"]} v{m[\"version\"]}')
+          "
+      - name: Check Python syntax
+        run: |
+          python3 -m py_compile custom_components/chint_ddsu666/*.py
+          echo "All Python files compile OK"
