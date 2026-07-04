@@ -61,15 +61,39 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("apparent_power_entity"): str,
                         vol.Optional("power_factor_entity"): str,
                         vol.Optional("frequency_entity"): str,
-                        vol.Optional("energy_import_t1_entity"): str,
-                        vol.Optional("energy_import_t2_entity"): str,
-                        vol.Optional("energy_export_t1_entity"): str,
-                        vol.Optional("energy_export_t2_entity"): str,
+                        vol.Optional("total_energy_import_t1_entity"): str,
+                        vol.Optional("total_energy_import_t2_entity"): str,
+                        vol.Optional("total_energy_export_t1_entity"): str,
+                        vol.Optional("total_energy_export_t2_entity"): str,
+                    }
+                ),
+                vol.Optional("polling"): vol.Schema(
+                    {
+                        vol.Optional("voltage_interval", default=5): int,
+                        vol.Optional("current_interval", default=1): int,
+                        vol.Optional("active_power_interval", default=1): int,
+                        vol.Optional("reactive_power_interval", default=1): int,
+                        vol.Optional("apparent_power_interval", default=1): int,
+                        vol.Optional("power_factor_interval", default=1): int,
+                        vol.Optional("frequency_interval", default=5): int,
+                        vol.Optional("energy_interval", default=10): int,
                     }
                 ),
                 vol.Optional("registers"): vol.Schema(
                     {
+                        vol.Optional("firmware_version", default=504): int,
+                        vol.Optional("clear_energy", default=0): int,
+                        vol.Optional("type_protocol", default=166): int,
+                        vol.Optional("communication_protocol", default=5): int,
+                        vol.Optional("modbus_address", default=3): int,
+                        vol.Optional("baudrate", default=3): int,
                         vol.Optional("frequency"): vol.Any(float, str),
+                        vol.Optional("reserved_4", default=5): int,
+                        vol.Optional("reserved_7", default=10): int,
+                        vol.Optional("reserved_8", default=1): int,
+                        vol.Optional("reserved_9", default=5): int,
+                        vol.Optional("reserved_10", default=0): int,
+                        vol.Optional("meter_type", default=166): int,
                     }
                 ),
             }
