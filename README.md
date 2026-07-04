@@ -15,11 +15,15 @@ Emulates a CHINT DDSU666 single-phase energy meter via Modbus TCP for Home Assis
 
 ### Via HACS (Recommended)
 
-1. Add this repository to HACS:
-   - Go to **HACS** → **Integrations** → **⋮** → **Custom repositories**
-   - Enter `https://github.com/Ofloo/growatt_meter_emulator` and select **Integration**
-   - Click **Install**
-2. Restart Home Assistant
+1. Go to **HACS** → **Integrations**
+2. Click **Explore & Download Repositories**
+3. Search for "CHINT DDSU666 Modbus Emulator" and select it
+4. Choose a version (e.g. `v0.3`) and click **Download**
+5. Restart Home Assistant
+
+> **Note:** If the integration is not yet in the default HACS repository, add it manually:
+> Go to **HACS** → **Integrations** → **⋮** → **Custom repositories**
+> Enter `https://github.com/Ofloo/growatt_meter_emulator` and select **Integration**
 
 ### Manual Installation
 
@@ -133,6 +137,14 @@ chmod +x test_modbus_emulator.sh
 | Invalid register values | Check validation rules in `const.py` (e.g. `baudrate` must be `0`-`3`) |
 | Frequency not working | Ensure `frequency` is either a number or a valid entity ID |
 | Energy import/export not working | Verify T1 and T2 entities are set and contain numeric values |
+
+## Versions
+
+| Version | Description                          | Date       |
+|---------|--------------------------------------|------------|
+| v0.3    | Fix silent drop, register range fixes | 2026-07-04 |
+| v0.2    | Config flow fixes, bugfixes          | 2026-07-03 |
+| v0.1    | Initial release                      | 2026-07-01 |
 
 ## License
 
