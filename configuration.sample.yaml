@@ -104,32 +104,43 @@ chint_ddsu666:
   # =============================================
   # Polling intervals (OPTIONEEL)
   # =============================================
-  # Overschrijf de standaard polling-intervallen uit de Node-RED flow.
+  # Overschrijf de standaard polling-intervallen.
   # Alle waarden zijn in seconden.
+  #
+  # - Actief vermogen wordt het snelst gepolld (20ms) omdat de regeling hierop werkt.
+  # - Spanning en frequentie zijn vrijwel constant en worden minder frequent gepolld (5s).
   polling:
     # Spanning (standaard: 5 seconden).
-    voltage_interval: 5
+    # Vrijwel constant → 5s polling is voldoende.
+    voltage_interval: 5.0
 
-    # Stroom (standaard: 1 seconde).
-    current_interval: 1
+    # Stroom (standaard: 20ms, 50Hz).
+    # Snelle schommelingen → 20ms polling voor real-time data.
+    current_interval: 0.02
 
-    # Actief vermogen (standaard: 1 seconde).
-    active_power_interval: 1
+    # Actief vermogen (standaard: 20ms, 50Hz).
+    # BELANGRIJKST voor de regeling → 20ms polling.
+    active_power_interval: 0.02
 
-    # Reactief vermogen (standaard: 1 seconde).
-    reactive_power_interval: 1
+    # Reactief vermogen (standaard: 20ms, 50Hz).
+    # Snelle schommelingen → 20ms polling.
+    reactive_power_interval: 0.02
 
-    # Schijnbaar vermogen (standaard: 1 seconde).
-    apparent_power_interval: 1
+    # Schijnbaar vermogen (standaard: 20ms, 50Hz).
+    # Snelle schommelingen → 20ms polling.
+    apparent_power_interval: 0.02
 
-    # Power Factor (standaard: 1 seconde).
-    power_factor_interval: 1
+    # Power Factor (standaard: 20ms, 50Hz).
+    # Snelle schommelingen → 20ms polling.
+    power_factor_interval: 0.02
 
     # Frequentie (standaard: 5 seconden).
-    frequency_interval: 5
+    # Vrijwel constant (50Hz) → 5s polling is voldoende.
+    frequency_interval: 5.0
 
     # Totale energie import/export (standaard: 10 seconden).
-    energy_interval: 10
+    # Langzame veranderingen → 10s polling is voldoende.
+    energy_interval: 10.0
 
   # =============================================
   # Statische registers (0x0001 - 0x0010) - OPTIONEEL
@@ -229,9 +240,9 @@ chint_ddsu666:
 #     total_energy_export_t1_entity: "sensor.slimme_meter_teruglevering_t1"
 #     total_energy_export_t2_entity: "sensor.slimme_meter_teruglevering_t2"
 #   polling:
-#     voltage_interval: 5
-#     current_interval: 1
-#     energy_interval: 10
+#     voltage_interval: 5.0
+#     current_interval: 0.02
+#     energy_interval: 10.0
 #   registers:
 #     firmware_version: 504
 #     baudrate: 3
