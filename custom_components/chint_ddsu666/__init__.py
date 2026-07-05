@@ -70,11 +70,11 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional("polling"): vol.Schema(
                     {
                         vol.Optional("voltage_interval", default=5): vol.Coerce(float),
-                        vol.Optional("current_interval", default=1): vol.Coerce(float),
-                        vol.Optional("active_power_interval", default=0.25): vol.Coerce(float),
-                        vol.Optional("reactive_power_interval", default=0.25): vol.Coerce(float),
-                        vol.Optional("apparent_power_interval", default=0.25): vol.Coerce(float),
-                        vol.Optional("power_factor_interval", default=0.25): vol.Coerce(float),
+                        vol.Optional("current_interval", default=0.02): vol.Coerce(float),
+                        vol.Optional("active_power_interval", default=0.02): vol.Coerce(float),
+                        vol.Optional("reactive_power_interval", default=0.02): vol.Coerce(float),
+                        vol.Optional("apparent_power_interval", default=0.02): vol.Coerce(float),
+                        vol.Optional("power_factor_interval", default=0.02): vol.Coerce(float),
                         vol.Optional("frequency_interval", default=5): vol.Coerce(float),
                         vol.Optional("energy_interval", default=10): vol.Coerce(float),
                     }

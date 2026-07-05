@@ -134,14 +134,14 @@ CONVERSION_FACTORS = {
 }
 
 # Polling intervals in seconden (uit de Node-RED flow)
-# Power registers op 0.25s omdat Growatt ~4x/sec pollt
+# Power registers op 0.02s (20ms) omdat Growatt ~50x/sec pollt
 POLLING_INTERVALS = {
     "voltage": 5,
-    "current": 1,
-    "active_power": 0.25,
-    "reactive_power": 0.25,
-    "apparent_power": 0.25,
-    "power_factor": 0.25,
+    "current": 0.02,
+    "active_power": 0.02,
+    "reactive_power": 0.02,
+    "apparent_power": 0.02,
+    "power_factor": 0.02,
     "frequency": 5,
     "total_energy_import": 10,
     "total_energy_export": 10,
